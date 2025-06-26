@@ -70,3 +70,30 @@ BEGIN
     WHERE user_name = p_user_name;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION get_order (p_order_id INT)
+RETURNS TABLE (
+    order_id INT,
+    user_name VARCHAR(16),
+    pet_name VARCHAR(32),
+    order_status VARCHAR(16)
+) AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM orders WHERE order_id = p_order_id) THEN
+        RAISE EXCEPTION 'Order ID % does not exist', p_order_id;
+    END IF;
+    
+    RETURN QUERY
+    SELECT
+        o.order_id,
+        u.user_name,
+        p.pet_name,
+        os.order_status_name AS order_status
+    FROM orders o
+    INNER JOIN users u ON o.user_id = u.user_id
+    INNER JOIN pets p ON o.pet_id = p.pet_id
+    INNER JOIN order_statuses os ON o.order_status = os.order_status_id
+    WHERE o.order_id = p.order_id;
+
+END;
+$$ LANGUAGE plpgsql;

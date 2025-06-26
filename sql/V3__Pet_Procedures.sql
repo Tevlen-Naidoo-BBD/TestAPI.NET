@@ -169,3 +169,85 @@ BEGIN
             RAISE EXCEPTION 'Error updated user: %', SQLERRM;
 END;
 $$;
+
+CREATE OR REPLACE PROCEDURE delete_user (
+    p_user_id INT
+) LANGUAGE plpgsql AS $$
+DECLARE
+    v_deactivated TIMESTAMPTZ
+BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM users WHERE user_id = p_user_id) THEN
+        RAISE EXCEPTION 'User ID % does not exist', p_user_id;
+    END IF;
+
+    SELECT deactivated_at INTO v_deactivated FROM users WHERE user_id = p_user_id;
+
+    IF v_deactivated IS NOT NULL THEN
+        RAISE EXCEPTION 'User % has already been deleted', p_user_id;
+    END IF;
+
+    CALL update_user(p_user_id, p_deactivated_at := p_deactivated_at);
+
+    RAISE NOTICE 'Successfully deleted user';
+
+    EXCEPTION
+        WHEN others THEN
+            RAISE EXCEPTION 'Error deleting user: %', SQLERRM;
+
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE add_order (
+    p_user_id INT,
+    p_pet_id INT
+) LANGUAGE plpgsql AS $$
+BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM users WHERE user_id = p_user_id) THEN
+        RAISE EXCEPTION 'User ID % does not exist', p_user_id;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pets wHERE pet_id = p_pet_id) THEN
+        RAISE EXCEPTION 'Pet ID % does not exist', p_pet_id;
+    END IF;
+
+    INSERT INTO orders (user_id, pet_id)
+    VALUES (p_user_id, p_pet_id);
+
+    RAISE NOTICE 'Successfully placed order';
+
+    EXCEPTION
+        WHEN others THEN
+            RAISE EXCEPTION 'Error placing order: %', SQLERRM;
+
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE cancel_order (
+    p_order_id INT
+) LANGUAGE plpgsql AS $$
+DECLARE
+    v_cancelled INT;
+BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM orders WHERE order_id = p_order_id) THEN
+        RAISE EXCEPTION 'order ID % does not exist', p_order_id;
+    END IF;
+
+    SELECT order_status_id INTO v_cancelled FROM order_statuses WHERE order_status_name = 'CANCELLED';
+
+    UPDATE orders
+    SET
+        order_status = v_cancelled
+    WHERE
+        order_id = p_order_id;
+
+    RAISE NOTICE 'Successfully cancelled order';
+
+    EXCEPTION
+        WHEN others THEN
+            RAISE EXCEPTION 'Error cancelling order: %', SQLERRM;
+            
+END;
+$$;
