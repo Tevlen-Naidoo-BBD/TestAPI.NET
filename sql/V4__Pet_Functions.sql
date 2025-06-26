@@ -54,3 +54,19 @@ BEGIN
     WHERE p.pet_status = p_pet_status;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION find_user (p_user_name VARCHAR(16))
+RETURNS TABLE (
+    user_id INT,
+    user_name
+) AS $$
+BEGIN
+
+    RETURN QUERY
+    SELECT
+        user_id,
+        user_name
+    FROM users
+    WHERE user_name = p_user_name;
+END;
+$$;

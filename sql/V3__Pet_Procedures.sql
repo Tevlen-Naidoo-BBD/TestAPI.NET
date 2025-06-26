@@ -111,3 +111,61 @@ BEGIN
             
 END;
 $$;
+
+CREATE OR REPLACE PROCEDURE add_user (
+   p_user_name VARCHAR(16),
+   p_user_email VARCHAR(128)
+) LANGUAGE plpgsql AS $$
+BEGIN
+
+    p_user_name := TRIM(p_user_name);
+    p_user_email := TRIM(p_user_email);
+
+    INSERT INTO users (user_name, user_email)
+    VALUES (p_user_name, p_user_email);
+
+    RAISE NOTICE 'Successfully added user';
+
+    EXCEPTION
+        WHEN others THEN
+            RAISE EXCEPTION 'Error adding user: %', SQLERRM;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE update_user (
+    p_user_id INT,
+    p_user_email VARCHAR(128) DEFAULT NULL,
+    p_deactivated_at TIMESTAMPTZ DEFAULT NULL
+) LANGUAGE plpgsql AS $$
+BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM users WHERE user_id = p_user_id) THEN
+        RAISE EXCEPTION 'User ID % does not exist', p_user_id;
+    END IF;
+
+    IF p_user_email IS NULL AND p_user_name IS NULL THEN
+        RAISE EXCEPTION 'At least one valid parameter must be passed in';
+    END IF;
+
+    IF p_deactivated_at IS NOT NULL AND p_deactivated_at > NOW() THEN
+        RAISE EXCEPTION 'Cannot set the deactivation time of a user to be in the future';
+    END IF;
+
+    IF p_user_email IS NOT NULL THEN
+        p_user_email := TRIM(p_user_email);
+    END IF;
+
+    UPDATE users
+    SET
+        user_email = COALESCE(user_email, p_user_email),
+        deactivated_at = COALESCE(deactivated_at, p_deactivated_at)
+    WHERE
+        user_id = p_user_id;
+
+    RAISE NOTICE 'Successfully updated user';
+
+    EXCEPTION
+        WHEN others THEN
+            RAISE EXCEPTION 'Error updated user: %', SQLERRM;
+END;
+$$;
