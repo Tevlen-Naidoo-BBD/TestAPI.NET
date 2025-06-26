@@ -58,8 +58,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION find_user (p_user_name VARCHAR(16))
 RETURNS TABLE (
     user_id INT,
-    user_name
-) AS $$
+    user_name VARCHAR(16)
+) LANGUAGE plpgsql AS $$
 BEGIN
 
     RETURN QUERY

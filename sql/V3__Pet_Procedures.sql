@@ -174,7 +174,7 @@ CREATE OR REPLACE PROCEDURE delete_user (
     p_user_id INT
 ) LANGUAGE plpgsql AS $$
 DECLARE
-    v_deactivated TIMESTAMPTZ
+    v_deactivated TIMESTAMPTZ;
 BEGIN
 
     IF NOT EXISTS (SELECT 1 FROM users WHERE user_id = p_user_id) THEN
