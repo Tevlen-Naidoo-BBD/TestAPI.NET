@@ -40,19 +40,11 @@ namespace PetStoreAPI.Controllers
         [HttpGet("order/{id}")]
         public async Task<IActionResult> GetOrderById(int id)
         {
-            var orders = await _context.Orders
+            var orders = await _context.Set<OrderDetailsDto>()
                 .FromSqlRaw("SELECT order_id, user_name, pet_name, order_status FROM get_order({0})", id)
                 .ToListAsync();
             if (orders.Count == 0) return NotFound();
-            var order = orders[0];
-            var dto = new OrderDto
-            {
-                OrderId = order.OrderId,
-                UserName = order.UserName,
-                PetName = order.PetName,
-                OrderStatus = order.OrderStatus
-            };
-            return Ok(dto);
+            return Ok(orders[0]);
         }
     }
 } 

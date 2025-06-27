@@ -22,7 +22,8 @@ namespace PetStoreAPI.Controllers
         {
             await _context.Database.ExecuteSqlRawAsync(
                 "CALL add_user({0}, {1})",
-                user.UserName, user.UserEmail);
+                user.UserName ?? (object)DBNull.Value,
+                user.UserEmail ?? (object)DBNull.Value);
             return Ok();
         }
 
@@ -50,7 +51,9 @@ namespace PetStoreAPI.Controllers
         {
             await _context.Database.ExecuteSqlRawAsync(
                 "CALL update_user({0}, {1}, {2})",
-                id, user.UserEmail, user.DeactivatedAt);
+                id,
+                user.UserEmail ?? (object)DBNull.Value,
+                user.DeactivatedAt ?? (object)DBNull.Value);
             return Ok();
         }
 

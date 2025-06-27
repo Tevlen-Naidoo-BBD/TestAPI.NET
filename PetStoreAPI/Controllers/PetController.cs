@@ -22,7 +22,10 @@ namespace PetStoreAPI.Controllers
         {
             await _context.Database.ExecuteSqlRawAsync(
                 "CALL add_pet({0}, {1}, {2}, {3})",
-                pet.PetName, pet.PetStatus, pet.PetStore, pet.PetImage);
+                pet.PetName ?? (object)DBNull.Value,
+                pet.PetStatus,
+                pet.PetStore ?? (object)DBNull.Value,
+                pet.PetImage ?? (object)DBNull.Value);
             return Ok();
         }
 
@@ -32,7 +35,12 @@ namespace PetStoreAPI.Controllers
         {
             await _context.Database.ExecuteSqlRawAsync(
                 "CALL update_pet({0}, {1}, {2}, {3}, {4}, {5})",
-                id, pet.PetName, pet.PetStatus, pet.PetStore, pet.PetImage, pet.RemovedAt);
+                id,
+                pet.PetName ?? (object)DBNull.Value,
+                pet.PetStatus,
+                pet.PetStore ?? (object)DBNull.Value,
+                pet.PetImage ?? (object)DBNull.Value,
+                pet.RemovedAt ?? (object)DBNull.Value);
             return Ok();
         }
 
@@ -42,27 +50,24 @@ namespace PetStoreAPI.Controllers
         {
             await _context.Database.ExecuteSqlRawAsync(
                 "CALL update_pet({0}, {1}, {2}, {3}, {4}, {5})",
-                id, pet.PetName, pet.PetStatus, pet.PetStore, pet.PetImage, pet.RemovedAt);
+                id,
+                pet.PetName ?? (object)DBNull.Value,
+                pet.PetStatus,
+                pet.PetStore ?? (object)DBNull.Value,
+                pet.PetImage ?? (object)DBNull.Value,
+                pet.RemovedAt ?? (object)DBNull.Value);
             return Ok();
         }
 
         // GET: api/pet/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<PetDto>> GetPetById(int id)
+        public async Task<ActionResult<PetDetailsDto>> GetPetById(int id)
         {
-            var pets = await _context.Pets
-                .FromSqlRaw("SELECT pet_id, pet_name, pet_status, pet_store FROM find_pet({0})", id)
+            var pets = await _context.Set<PetDetailsDto>()
+                .FromSqlRaw("SELECT * FROM find_pet({0})", id)
                 .ToListAsync();
             if (pets.Count == 0) return NotFound();
-            var pet = pets[0];
-            var dto = new PetDto
-            {
-                PetId = pet.PetId,
-                PetName = pet.PetName,
-                PetStatus = pet.PetStatus.ToString(),
-                PetStore = pet.PetStore?.ToString()
-            };
-            return Ok(dto);
+            return Ok(pets[0]);
         }
 
         // GET: api/pet?status={statusId}
@@ -88,7 +93,8 @@ namespace PetStoreAPI.Controllers
         {
             await _context.Database.ExecuteSqlRawAsync(
                 "CALL upload_pet_image({0}, {1})",
-                id, image);
+                id,
+                image ?? (object)DBNull.Value);
             return Ok();
         }
 
